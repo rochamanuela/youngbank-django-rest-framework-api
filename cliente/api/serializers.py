@@ -11,3 +11,33 @@ class ClientePJSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ClientePJ
         fields = '__all__'
+        
+
+class ContaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Conta
+        fields = '__all__'
+
+
+class ClientePFContaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ClientePFConta
+        fields = '__all__'
+
+
+class ClientePJContaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ClientePJConta
+        fields = '__all__'
+        
+        
+class EmprestimoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Emprestimo
+        fields = '__all__'
+
+
+class EmprestimoParcelaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.EmprestimoParcela
+        fields = '__all__'
