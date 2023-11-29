@@ -2,6 +2,8 @@ from django.db import models
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 def validate_cpf(cpf):
     cpf = ''.join(filter(str.isdigit, cpf))
@@ -69,4 +71,81 @@ class ClientePJ(models.Model):
     cnpj = models.CharField(max_length=14, unique=True, null=False)
     numero = models.CharField(max_length=20)
     email = models.EmailField(unique=True)
-    senha = models.CharField(max_length=120)
+    senha = models.CharField(max_length=120)    
+    
+    
+class Conta(models.Model):
+    id_conta = models.AutoField(primary_key=True)
+    agencia = models.CharField(max_length=4)
+    numero = models.CharField(max_length=35)
+    tipo = models.CharField(max_length=20)
+    limite = models.DecimalField(max_digits=10, decimal_places=2)
+    ativa = models.BooleanField(default=True)
+
+
+class ClientePFConta(models.Model):
+    fk_cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
+
+
+class ClientePJConta(models.Model):
+    fk_cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
+
+
+@receiver(post_save, sender=ClientePF)
+def criar_conta_automatica_pf(sender, instance, created, **kwargs):
+    if created:
+        nova_conta = Conta.objects.create(
+            agencia="1234",
+            numero="567890",
+            tipo=instance.tipo_conta,
+            limite=1000.00,
+            ativa=True
+        )
+        ClientePFConta.objects.create(fk_cliente=instance, fk_conta=nova_conta)
+
+
+@receiver(post_save, sender=ClientePJ)
+def criar_conta_automatica_pj(sender, instance, created, **kwargs):
+    if created:
+        nova_conta = Conta.objects.create(
+            agencia="1234",
+            numero="567890",
+            tipo=instance.tipo_conta,
+            limite=1000.00,
+            ativa=True
+        )
+        ClientePJConta.objects.create(fk_cliente=instance, fk_conta=nova_conta)
+        
+
+class Cartao(models.Model):
+    id_cartao = models.AutoField(primary_key=True)
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
+    numero = models.CharField(max_length=16)
+    validade = models.DateField()
+    cvv = models.CharField(max_length=3)
+    bandeira = models.CharField(max_length=20)
+    situacao = models.CharField(max_length=10)
+    
+
+class Emprestimo(models.Model):
+    id_emprestimo = models.AutoField(primary_key=True)
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
+    data_solicitacao = models.DateTimeField(auto_now=True)
+    valor_solicitado = models.DecimalField(decimal_places=2, max_digits=6)
+    juros = models.DecimalField(decimal_places=2, max_digits=4)
+    aprovado = models.BooleanField(default=False)
+    numero_parcelas = models.IntegerField(blank=True)
+    data_aprovacao = models.DateField(blank=True)
+
+
+class EmprestimoParcela(models.Model):
+    id_parcela = models.AutoField(primary_key=True)
+    fk_emprestimo = models.ForeignKey(Emprestimo, on_delete=models.CASCADE)
+    numero = models.CharField(max_length=60)
+    data_vencimento = models.DateField()
+    valor_parcela = models.DecimalField(decimal_places=2, max_digits=6)
+    data_pagamento = models.DateTimeField(blank=True)
+    valor_pago = models.DecimalField(blank=True, decimal_places=2, max_digits=6)
+
