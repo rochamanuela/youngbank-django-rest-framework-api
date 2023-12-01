@@ -11,3 +11,10 @@ class ClientePFViewSet(viewsets.ModelViewSet):
 class ClientePJViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ClientePJSerializer
     queryset = models.ClientePJ.objects.all()
+
+class ContaViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.ContaSerializer
+    queryset = models.Conta.objects.all()
+
+
+

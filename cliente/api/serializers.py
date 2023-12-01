@@ -19,16 +19,7 @@ class ContaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ClientePFContaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.ClientePFConta
-        fields = '__all__'
 
-
-class ClientePJContaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.ClientePJConta
-        fields = '__all__'
         
         
 class EmprestimoSerializer(serializers.ModelSerializer):

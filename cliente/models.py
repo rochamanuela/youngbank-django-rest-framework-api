@@ -81,16 +81,18 @@ class Conta(models.Model):
     tipo = models.CharField(max_length=20)
     limite = models.DecimalField(max_digits=10, decimal_places=2)
     ativa = models.BooleanField(default=True)
+    cliente_pf = models.ForeignKey(ClientePF, on_delete=models.CASCADE, related_name="cliente_pf_conta", null=True)
+    cliente_pj = models.ForeignKey(ClientePJ, on_delete=models.CASCADE, related_name="cliente_pj_conta", null=True)
 
 
-class ClientePFConta(models.Model):
-    fk_cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
-    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
+# class ClientePFConta(models.Model):
+#     fk_cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
+#     fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
 
 
-class ClientePJConta(models.Model):
-    fk_cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
-    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
+# class ClientePJConta(models.Model):
+#     fk_cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
+#     fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
 
 
 @receiver(post_save, sender=ClientePF)
@@ -99,11 +101,12 @@ def criar_conta_automatica_pf(sender, instance, created, **kwargs):
         nova_conta = Conta.objects.create(
             agencia="1234",
             numero="567890",
-            tipo=instance.tipo_conta,
+            tipo="Poupança",
             limite=1000.00,
-            ativa=True
+            ativa=True,
+            cliente_pf=instance
         )
-        ClientePFConta.objects.create(fk_cliente=instance, fk_conta=nova_conta)
+        nova_conta.save()
 
 
 @receiver(post_save, sender=ClientePJ)
@@ -112,11 +115,12 @@ def criar_conta_automatica_pj(sender, instance, created, **kwargs):
         nova_conta = Conta.objects.create(
             agencia="1234",
             numero="567890",
-            tipo=instance.tipo_conta,
+            tipo="Corrente",
             limite=1000.00,
-            ativa=True
+            ativa=True,
+            cliente_pj=instance
         )
-        ClientePJConta.objects.create(fk_cliente=instance, fk_conta=nova_conta)
+        nova_conta.save()
         
 
 class Cartao(models.Model):

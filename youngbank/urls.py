@@ -6,6 +6,7 @@ from cliente.api import viewsets as clienteviewsets
 route = routers.DefaultRouter()
 route.register(r'cliente_pf', clienteviewsets.ClientePFViewSet, basename="ClientePF")
 route.register(r'cliente_pj', clienteviewsets.ClientePJViewSet, basename="ClientePJ")
+route.register(r'conta', clienteviewsets.ContaViewSet, basename="Conta")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
