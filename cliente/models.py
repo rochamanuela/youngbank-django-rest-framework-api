@@ -1,5 +1,8 @@
 from django.db import models
 
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.db.models.signals import post_save
@@ -51,7 +54,40 @@ def validate_inscricao_municipal(value):
 def validate_inscricao_estadual(value):
     if not value.isdigit() or len(value) != 9:
         raise ValidationError("O valor deve conter exatamente 9 dígitos numéricos.")
+
+# ------------------------------------------------------------------------------------------
     
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser has to have is_staff being True")
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser has to have is_superuser being True")
+
+        return self.create_user(email=email, password=password, **extra_fields)
+
+
+class User(AbstractUser):
+    email = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=80, unique=False)
+
+    objects = CustomUserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+
+    def __str__(self):
+        return self.username
+
 
 class ClientePF(models.Model):
     id_cliente_pf = models.AutoField(primary_key=True)
@@ -60,8 +96,7 @@ class ClientePF(models.Model):
     cpf = models.CharField(max_length=14, unique=True, null=False, validators=[validate_cpf])
     rg = models.CharField(max_length=20)
     numero = models.CharField(max_length=20)
-    email = models.EmailField(unique=True)
-    senha = models.CharField(max_length=120)
+    usuario = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, blank=True, null=True)
 
 
 class ClientePJ(models.Model):
@@ -70,8 +105,7 @@ class ClientePJ(models.Model):
     data_abertura = models.DateField()
     cnpj = models.CharField(max_length=14, unique=True, null=False)
     numero = models.CharField(max_length=20)
-    email = models.EmailField(unique=True)
-    senha = models.CharField(max_length=120)    
+    usuario = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, blank=True, null=True)
     
     
 class Conta(models.Model):
@@ -85,24 +119,14 @@ class Conta(models.Model):
     cliente_pj = models.ForeignKey(ClientePJ, on_delete=models.CASCADE, related_name="cliente_pj_conta", null=True)
 
 
-# class ClientePFConta(models.Model):
-#     fk_cliente = models.ForeignKey(ClientePF, on_delete=models.CASCADE)
-#     fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
-
-
-# class ClientePJConta(models.Model):
-#     fk_cliente = models.ForeignKey(ClientePJ, on_delete=models.CASCADE)
-#     fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
-
-
 @receiver(post_save, sender=ClientePF)
 def criar_conta_automatica_pf(sender, instance, created, **kwargs):
     if created:
         nova_conta = Conta.objects.create(
-            agencia="1234",
+            agencia="0001",
             numero="567890",
             tipo="Poupança",
-            limite=1000.00,
+            limite=500000.00,
             ativa=True,
             cliente_pf=instance
         )
@@ -113,10 +137,10 @@ def criar_conta_automatica_pf(sender, instance, created, **kwargs):
 def criar_conta_automatica_pj(sender, instance, created, **kwargs):
     if created:
         nova_conta = Conta.objects.create(
-            agencia="1234",
+            agencia="0002",
             numero="567890",
             tipo="Corrente",
-            limite=1000.00,
+            limite=900000.00,
             ativa=True,
             cliente_pj=instance
         )
@@ -153,3 +177,6 @@ class EmprestimoParcela(models.Model):
     data_pagamento = models.DateTimeField(blank=True)
     valor_pago = models.DecimalField(blank=True, decimal_places=2, max_digits=6)
 
+
+class Transferencias(models.Model):
+    pass

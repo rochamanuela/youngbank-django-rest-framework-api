@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'cliente',
+    'djoser',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -68,6 +71,23 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user': 'cliente.serializers.UserSerializer',
+    },
+}
+
+AUTH_USER_MODEL = 'cliente.User'
 
 WSGI_APPLICATION = 'youngbank.wsgi.application'
 
