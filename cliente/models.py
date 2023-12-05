@@ -156,6 +156,7 @@ class Cartao(models.Model):
     cvv = models.CharField(max_length=3, null=True)
     bandeira = models.CharField(max_length=20, null=True)
     situacao = models.CharField(max_length=10, null=True)
+    limite = models.DecimalField(max_digits=10, decimal_places=2)
     
 
 class Emprestimo(models.Model):
