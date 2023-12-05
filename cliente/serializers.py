@@ -1,5 +1,11 @@
 from rest_framework import serializers
 from cliente import models
+from rest_framework.exceptions import ValidationError
+
+from rest_framework.response import Response
+from rest_framework import status
+from requests import request
+import random, string
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,26 +32,80 @@ class ClientePFSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         usuario_logado = self.context['request'].user
-
-        seu_modelo = models.ClientePF.objects.create(usuario=usuario_logado, **validated_data)
-
-        return seu_modelo
         
-        
+        if models.ClientePJ.objects.filter(usuario=usuario_logado).first() or models.ClientePF.objects.filter(usuario=usuario_logado).first():
+            raise ValidationError("Este usuário já possui um cliente associado.", code='invalid')
 
+        cliente = models.ClientePF.objects.create(usuario=usuario_logado, **validated_data)
+
+        return cliente
+        
 
 class ClientePJSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ClientePJ
         fields = '__all__'
         
+    def create(self, validated_data):
+        usuario_logado = self.context['request'].user
+        
+        if models.ClientePJ.objects.filter(usuario=usuario_logado).first() or models.ClientePF.objects.filter(usuario=usuario_logado).first():
+            raise ValidationError("Este usuário já possui um cliente associado.", code='invalid')
+        cliente = models.ClientePJ.objects.create(usuario=usuario_logado, **validated_data)
+
+        return cliente
 
 class ContaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Conta
         fields = '__all__'
-     
+
+
+def generate_random_number():
+    return ''.join(random.choices(string.digits, k=16))
+
+def generate_random_cvv():
+    return ''.join(random.choices(string.digits, k=3))  
+
+
+class CartaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Cartao
+        fields = '__all__'
         
+    def create(self, validated_data):
+        usuario_logado = self.context['request'].user
+        
+        cliente_pj = models.ClientePJ.objects.filter(usuario=usuario_logado).first()
+        cliente_pf = models.ClientePF.objects.filter(usuario=usuario_logado).first()
+        
+        if cliente_pf:
+            conta_existente = models.Conta.objects.filter(cliente_pf=cliente_pf.id_cliente_pf).first()
+            
+        if cliente_pj:
+            conta_existente = models.Conta.objects.filter(cliente_pj=cliente_pj.id_cliente_pj).first()
+        
+        try:
+            
+            if conta_existente.saldo > 1000:
+                novo_cartao = models.Cartao.objects.create(
+                    fk_conta=conta_existente,
+                    numero=generate_random_number(),
+                    validade='2025-12-30',
+                    cvv=generate_random_cvv(),
+                    bandeira='Martercard',
+                    situacao='ativo'
+                )
+                conta_existente.save()
+                return novo_cartao
+            
+            else:
+                raise ValidationError("É necessário ter saldo igual ou superior a 1000 reais para possuir cartao de credito.", code='invalid')
+
+        except models.Conta.DoesNotExist:
+            return Response({'error': 'Conta não encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+    
 class EmprestimoSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Emprestimo

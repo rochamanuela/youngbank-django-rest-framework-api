@@ -1,4 +1,5 @@
 from django.db import models
+import random
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
@@ -44,16 +45,13 @@ def validate_cpf(cpf):
         return False
     
     return True
-    
-# validação para o campo de inscricao_municipal
-def validate_inscricao_municipal(value):
-    if not value.isdigit() or len(value) != 11:
-        raise ValidationError("O valor deve conter exatamente 11 dígitos numéricos.")
 
-# validação para o campo de inscricao_estadual
-def validate_inscricao_estadual(value):
-    if not value.isdigit() or len(value) != 9:
-        raise ValidationError("O valor deve conter exatamente 9 dígitos numéricos.")
+
+def criar_numero_conta():
+    while True:
+        numero_conta = str(random.randint(100000, 999999))  
+        if not Conta.objects.filter(numero=numero_conta).exists():
+            return numero_conta
 
 # ------------------------------------------------------------------------------------------
     
@@ -114,9 +112,10 @@ class Conta(models.Model):
     numero = models.CharField(max_length=35)
     tipo = models.CharField(max_length=20)
     limite = models.DecimalField(max_digits=10, decimal_places=2)
+    saldo = models.DecimalField(max_digits=10, decimal_places=2)
     ativa = models.BooleanField(default=True)
-    cliente_pf = models.ForeignKey(ClientePF, on_delete=models.CASCADE, related_name="cliente_pf_conta", null=True)
-    cliente_pj = models.ForeignKey(ClientePJ, on_delete=models.CASCADE, related_name="cliente_pj_conta", null=True)
+    cliente_pf = models.ForeignKey(ClientePF, on_delete=models.CASCADE, related_name="cliente_pf_conta", null=True, blank=True)
+    cliente_pj = models.ForeignKey(ClientePJ, on_delete=models.CASCADE, related_name="cliente_pj_conta", null=True, blank=True)
 
 
 @receiver(post_save, sender=ClientePF)
@@ -124,9 +123,10 @@ def criar_conta_automatica_pf(sender, instance, created, **kwargs):
     if created:
         nova_conta = Conta.objects.create(
             agencia="0001",
-            numero="567890",
+            numero=criar_numero_conta(),
             tipo="Poupança",
             limite=500000.00,
+            saldo=0,
             ativa=True,
             cliente_pf=instance
         )
@@ -138,9 +138,10 @@ def criar_conta_automatica_pj(sender, instance, created, **kwargs):
     if created:
         nova_conta = Conta.objects.create(
             agencia="0002",
-            numero="567890",
+            numero=criar_numero_conta(),
             tipo="Corrente",
             limite=900000.00,
+            saldo=0,
             ativa=True,
             cliente_pj=instance
         )
@@ -149,12 +150,12 @@ def criar_conta_automatica_pj(sender, instance, created, **kwargs):
 
 class Cartao(models.Model):
     id_cartao = models.AutoField(primary_key=True)
-    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
-    numero = models.CharField(max_length=16)
-    validade = models.DateField()
-    cvv = models.CharField(max_length=3)
-    bandeira = models.CharField(max_length=20)
-    situacao = models.CharField(max_length=10)
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE, null=True)
+    numero = models.CharField(max_length=16, null=True)
+    validade = models.DateField(null=True)
+    cvv = models.CharField(max_length=3, null=True)
+    bandeira = models.CharField(max_length=20, null=True)
+    situacao = models.CharField(max_length=10, null=True)
     
 
 class Emprestimo(models.Model):

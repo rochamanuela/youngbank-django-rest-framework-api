@@ -7,6 +7,7 @@ route = routers.DefaultRouter()
 route.register(r'cliente_pf', clienteviewsets.ClientePFViewSet, basename="ClientePF")
 route.register(r'cliente_pj', clienteviewsets.ClientePJViewSet, basename="ClientePJ")
 route.register(r'conta', clienteviewsets.ContaViewSet, basename="Conta")
+route.register(r'cartao', clienteviewsets.CartaoViewSet, basename="Cartao")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
