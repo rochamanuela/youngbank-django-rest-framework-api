@@ -8,6 +8,7 @@ route.register(r'cliente_pf', clienteviewsets.ClientePFViewSet, basename="Client
 route.register(r'cliente_pj', clienteviewsets.ClientePJViewSet, basename="ClientePJ")
 route.register(r'conta', clienteviewsets.ContaViewSet, basename="Conta")
 route.register(r'cartao', clienteviewsets.CartaoViewSet, basename="Cartao")
+route.register(r'emprestimo', clienteviewsets.EmprestimoViewSet, basename="Emprestimo")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

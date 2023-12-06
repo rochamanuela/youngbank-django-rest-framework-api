@@ -156,29 +156,32 @@ class Cartao(models.Model):
     cvv = models.CharField(max_length=3, null=True)
     bandeira = models.CharField(max_length=20, null=True)
     situacao = models.CharField(max_length=10, null=True)
-    limite = models.DecimalField(max_digits=10, decimal_places=2)
+    limite = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     
 
 class Emprestimo(models.Model):
     id_emprestimo = models.AutoField(primary_key=True)
-    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE)
-    data_solicitacao = models.DateTimeField(auto_now=True)
-    valor_solicitado = models.DecimalField(decimal_places=2, max_digits=6)
-    juros = models.DecimalField(decimal_places=2, max_digits=4)
-    aprovado = models.BooleanField(default=False)
-    numero_parcelas = models.IntegerField(blank=True)
-    data_aprovacao = models.DateField(blank=True)
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE, null=True)
+    data_solicitacao = models.DateTimeField(auto_now=True, null=True)
+    valor_solicitado = models.DecimalField(decimal_places=2, max_digits=6, null=True)
+    juros = models.DecimalField(decimal_places=2, max_digits=4, null=True)
+    numero_parcelas = models.IntegerField(blank=True, null=True)
+    valor_por_parcela = models.DecimalField(decimal_places=2, max_digits=6, null=True)
+    data_aprovacao = models.DateField(blank=True, null=True)
 
 
-class EmprestimoParcela(models.Model):
-    id_parcela = models.AutoField(primary_key=True)
-    fk_emprestimo = models.ForeignKey(Emprestimo, on_delete=models.CASCADE)
-    numero = models.CharField(max_length=60)
-    data_vencimento = models.DateField()
-    valor_parcela = models.DecimalField(decimal_places=2, max_digits=6)
-    data_pagamento = models.DateTimeField(blank=True)
-    valor_pago = models.DecimalField(blank=True, decimal_places=2, max_digits=6)
-
-
-class Transferencias(models.Model):
-    pass
+class Transferencia(models.Model):
+    OPCOES_DE_TIPO = [
+        ('conta', 'Conta'),
+        ('cartao', 'Cartão de Crédito'),
+    ]
+    
+    tipo = models.CharField(max_length=10, choices=OPCOES_DE_TIPO)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    conta_remetente = models.ForeignKey('Conta', on_delete=models.CASCADE, blank=True, null=True)
+    cartao_remetente = models.ForeignKey('Cartao', on_delete=models.CASCADE, blank=True, null=True)
+    data = models.DateTimeField(auto_now_add=True)
+    conta_destinatario = models.ForeignKey('Conta', on_delete=models.CASCADE, blank=True, null=True, related_name='destinatario')
+    
+    def __str__(self):
+        return f"Transferência - Tipo: {self.tipo}, Valor: {self.valor}"
