@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Conta, ClientePF, ClientePJ, User, Cartao, Emprestimo
+from .models import Conta, ClientePF, ClientePJ, User, Cartao, Emprestimo, Transferencia
 # Register your models here.
 
 
@@ -26,7 +26,6 @@ class UserAdmin(admin.ModelAdmin):
     list_display =('email', 'username')
 
 
-
-
-
-
+@admin.register(Transferencia)
+class TransferenciaAdmin(admin.ModelAdmin):
+    list_display =("tipo_transferencia", "tipo_operacao", "data_hora", "valor")

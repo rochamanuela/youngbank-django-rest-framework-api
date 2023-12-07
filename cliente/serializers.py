@@ -151,3 +151,13 @@ class EmprestimoSerializer(serializers.ModelSerializer):
 
         except models.Conta.DoesNotExist:
             return Response({'error': 'Conta não encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+class TransferenciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Transferencia
+        fields = '__all__'
+        
+    def create(self, validated_data):
+        transferencia = models.Transferencia.objects.create(**validated_data)
+        return transferencia

@@ -9,10 +9,13 @@ route.register(r'cliente_pj', clienteviewsets.ClientePJViewSet, basename="Client
 route.register(r'conta', clienteviewsets.ContaViewSet, basename="Conta")
 route.register(r'cartao', clienteviewsets.CartaoViewSet, basename="Cartao")
 route.register(r'emprestimo', clienteviewsets.EmprestimoViewSet, basename="Emprestimo")
+route.register(r'transferencia', clienteviewsets.TransferenciaViewSet, basename="Transferencia")
+# route.register(r'transferencias', clienteviewsets.ListaTransferenciasView, basename='Transferencia')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(route.urls)),
     path('api/v1/auth/', include('djoser.urls.authtoken')),
     path('api/v1/auth/', include('djoser.urls')),
+    # path('api/v1/transferencias/', clienteviewsets.ListaTransferenciasView.as_view(), name='lista_transferencias'),
 ]

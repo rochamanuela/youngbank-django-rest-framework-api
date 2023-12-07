@@ -171,17 +171,11 @@ class Emprestimo(models.Model):
 
 
 class Transferencia(models.Model):
-    OPCOES_DE_TIPO = [
-        ('conta', 'Conta'),
-        ('cartao', 'Cartão de Crédito'),
-    ]
-    
-    tipo = models.CharField(max_length=10, choices=OPCOES_DE_TIPO)
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
-    conta_remetente = models.ForeignKey('Conta', on_delete=models.CASCADE, blank=True, null=True)
-    cartao_remetente = models.ForeignKey('Cartao', on_delete=models.CASCADE, blank=True, null=True)
-    data = models.DateTimeField(auto_now_add=True)
-    conta_destinatario = models.ForeignKey('Conta', on_delete=models.CASCADE, blank=True, null=True, related_name='destinatario')
+    fk_conta = models.ForeignKey(Conta, on_delete=models.CASCADE, null=True)
+    tipo_transferencia = models.CharField(max_length=30)
+    tipo_operacao = models.CharField(max_length=20)
+    data_hora = models.DateTimeField(auto_now=True)
+    valor = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     
     def __str__(self):
-        return f"Transferência - Tipo: {self.tipo}, Valor: {self.valor}"
+        return f'{self.tipo_operacao}, {self.valor}'
