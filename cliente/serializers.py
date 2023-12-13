@@ -57,6 +57,7 @@ class ClientePJSerializer(serializers.ModelSerializer):
         return cliente
 
 class ContaSerializer(serializers.ModelSerializer):
+    cliente_pf = ClientePFSerializer(read_only=True)
     class Meta:
         model = models.Conta
         fields = '__all__'
